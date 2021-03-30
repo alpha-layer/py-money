@@ -1,7 +1,7 @@
 # type: ignore
 from decimal import Decimal
 
-import pytest
+import unittest
 from money.currency import Currency
 from money.exceptions import (
     CurrencyMismatchError,
@@ -11,302 +11,371 @@ from money.exceptions import (
 from money.money import Money
 
 
-class TestMoney:
+class TestMoney(unittest.TestCase):
     """Money tests"""
 
     def test_construction_from_float(self):
         money = Money(3.95)
-        assert money.amount == Decimal("3.95")
-        assert money.currency == Currency.USD
+        self.assertEqual(Decimal("3.95"), money.amount)
+        self.assertEqual(Currency.USD, money.currency)
 
         money = Money(192.325, Currency.KWD)
-        assert money.amount == Decimal("192.325")
-        assert money.currency == Currency.KWD
+        self.assertEqual(Decimal("192.325"), money.amount)
+        self.assertEqual(Currency.KWD, money.currency)
 
-        with pytest.raises(InvalidAmountError):
+        with self.assertRaises(InvalidAmountError):
             Money(3.956, Currency.USD)
 
-        with pytest.raises(InvalidAmountError):
+        with self.assertRaises(InvalidAmountError):
             # nonfractional currency
             Money(10.2, Currency.KRW)
 
     def test_construction_from_int(self):
         money = Money(1, Currency.USD)
-        assert money.amount == Decimal("1")
-        assert money.currency == Currency.USD
-        assert str(money) == "USD $1.00"
+        self.assertEqual(Decimal("1"), money.amount)
+        self.assertEqual(Currency.USD, money.currency)
 
         money = Money(199, Currency.JPY)
-        assert money.amount == Decimal("199")
-        assert money.currency == Currency.JPY
-        assert str(money) == "JPY ¥199"
+        self.assertEqual(Decimal("199"), money.amount)
+        self.assertEqual(Currency.JPY, money.currency)
 
     def test_construction_from_decimal(self):
         money = Money(Decimal("3.95"))
-        assert money.amount == Decimal("3.95")
-        assert money.currency == Currency.USD
+        self.assertEqual(Decimal("3.95"), money.amount)
+        self.assertEqual(Currency.USD, money.currency)
 
         money = Money(Decimal(1), Currency.USD)
-        assert money.amount == Decimal("1")
-        assert money.currency == Currency.USD
+        self.assertEqual(Decimal("1"), money.amount)
+        self.assertEqual(Currency.USD, money.currency)
 
         money = Money(Decimal(199), Currency.JPY)
-        assert money.amount == Decimal("199")
-        assert money.currency == Currency.JPY
+        self.assertEqual(Decimal("199"), money.amount)
+        self.assertEqual(Currency.JPY, money.currency)
 
         money = Money(Decimal("192.325"), Currency.KWD)
-        assert money.amount == Decimal("192.325")
-        assert money.currency == Currency.KWD
+        self.assertEqual(Decimal("192.325"), money.amount)
+        self.assertEqual(Currency.KWD, money.currency)
 
-        with pytest.raises(InvalidAmountError):
+        with self.assertRaises(InvalidAmountError):
             Money(Decimal("3.956"), Currency.USD)
 
-        with pytest.raises(InvalidAmountError):
+        with self.assertRaises(InvalidAmountError):
             # nonfractional currency
             Money(Decimal("10.2"), Currency.KRW)
 
     def test_constrction_from_string(self):
         money = Money("3.95")
-        assert money.amount == Decimal("3.95")
-        assert money.currency == Currency.USD
+        self.assertEqual(Decimal("3.95"), money.amount)
+        self.assertEqual(Currency.USD, money.currency)
 
         money = Money("1", Currency.USD)
-        assert money.amount == Decimal("1")
-        assert money.currency == Currency.USD
+        self.assertEqual(Decimal("1"), money.amount)
+        self.assertEqual(Currency.USD, money.currency)
 
         money = Money("199", Currency.JPY)
-        assert money.amount == Decimal("199")
-        assert money.currency == Currency.JPY
+        self.assertEqual(Decimal("199"), money.amount)
+        self.assertEqual(Currency.JPY, money.currency)
 
         money = Money("192.325", Currency.KWD)
-        assert money.amount == Decimal("192.325")
-        assert money.currency == Currency.KWD
+        self.assertEqual(Decimal("192.325"), money.amount)
+        self.assertEqual(Currency.KWD, money.currency)
 
-        with pytest.raises(InvalidAmountError):
+        with self.assertRaises(InvalidAmountError):
             Money("3.956", Currency.USD)
 
-        with pytest.raises(InvalidAmountError):
+        with self.assertRaises(InvalidAmountError):
             # nonfractional currency
             Money("10.2", Currency.KRW)
 
     def test_constrction_with_round_flag(self):
         money = Money("3.956", round=True)
-        assert money.amount == Decimal("3.96")
-        assert money.currency == Currency.USD
+        self.assertEqual(Decimal("3.96"), money.amount)
+        self.assertEqual(Currency.USD, money.currency)
 
         # nonfractional currencies
         money = Money("10.2", Currency.KRW, round=True)
-        assert money.amount == Decimal("10")
-        assert money.currency == Currency.KRW
+        self.assertEqual(Decimal("10"), money.amount)
+        self.assertEqual(Currency.KRW, money.currency)
 
         money = Money("5.5", Currency.JPY, round=True)
-        assert money.amount == Decimal("6")
-        assert money.currency == Currency.JPY
+        self.assertEqual(Decimal("6"), money.amount)
+        self.assertEqual(Currency.JPY, money.currency)
 
     def test_from_sub_units(self):
         money = Money.from_sub_units(101, Currency.USD)
-        assert money == Money(1.01, Currency.USD)
+        self.assertEqual(Money(1.01, Currency.USD), money)
 
         money = Money.from_sub_units(5, Currency.JPY)
-        assert money == Money(5, Currency.JPY)
+        self.assertEqual(Money(5, Currency.JPY), money)
 
     def test_sub_units(self):
         money = Money(1.01, Currency.USD)
-        assert money.sub_units == 101
+        self.assertEqual(101, money.sub_units)
 
     def test_hash(self):
-        assert hash(Money(1.2)) == hash(Money(1.2, Currency.USD))
-        assert hash(Money(1.5)) != hash(Money(9.3))
-        assert hash(Money(99.3, Currency.CHF)) != hash(Money(99.3, Currency.USD))
+        self.assertEqual(hash(Money(1.2, Currency.USD)), hash(Money(1.2)))
+        self.assertNotEqual(hash(Money(9.3)), hash(Money(1.5)))
+        self.assertNotEqual(
+            hash(Money(99.3, Currency.USD)), hash(Money(99.3, Currency.CHF))
+        )
 
     def test_tostring(self):
-        assert str(Money(1.2)) == "USD $1.20"
-        assert str(Money(3.6, Currency.CHF)) == "CHF3.60"
-        assert str(Money(88, Currency.JPY)) == "JPY ¥88"
+        self.assertEqual("USD 1.20", str(Money(1.2)))
+        self.assertEqual("CHF 3.60", str(Money(3.6, Currency.CHF)))
+        self.assertEqual("JPY 88", str(Money(88, Currency.JPY)))
+        self.assertEqual("CAD 1.00", str(Money(1, Currency.CAD)))
+        self.assertEqual("KWD 192.325", str(Money(192.325, Currency.KWD)))
 
     def test_less_than(self):
-        assert Money(1.2) < Money(3.5)
-        assert not Money(104.2) < Money(5.13)
-        assert not Money(2.2) < Money(2.2)
+        self.assertLess(Money(1.2), Money(3.5))
+        self.assertFalse(Money(104.2) < Money(5.13))
+        self.assertFalse(Money(2.2) < Money(2.2))
 
-        with pytest.raises(CurrencyMismatchError):
+        with self.assertRaises(CurrencyMismatchError):
             Money(1.2, Currency.GBP) < Money(3.5, Currency.EUR)
 
-        with pytest.raises(InvalidOperandError):
+        with self.assertRaises(InvalidOperandError):
             1.2 < Money(3.5)
 
     def test_less_than_or_equal(self):
-        assert Money(1.2) <= Money(3.5)
-        assert not Money(104.2) <= Money(5.13)
-        assert Money(2.2) <= Money(2.2)
+        self.assertLessEqual(Money(1.2), Money(3.5))
+        self.assertFalse(Money(104.2) <= Money(5.13))
+        self.assertLessEqual(Money(2.2), Money(2.2))
 
-        with pytest.raises(CurrencyMismatchError):
+        with self.assertRaises(CurrencyMismatchError):
             Money(1.2, Currency.GBP) <= Money(3.5, Currency.EUR)
 
-        with pytest.raises(InvalidOperandError):
+        with self.assertRaises(InvalidOperandError):
             1.2 <= Money(3.5)
 
     def test_greater_than(self):
-        assert Money(3.5) > Money(1.2)
-        assert not Money(5.13) > Money(104.2)
-        assert not Money(2.2) > Money(2.2)
+        self.assertGreater(Money(3.5), Money(1.2))
+        self.assertFalse(Money(5.13) > Money(104.2))
+        self.assertFalse(Money(2.2) > Money(2.2))
 
-        with pytest.raises(CurrencyMismatchError):
+        with self.assertRaises(CurrencyMismatchError):
             Money(3.5, Currency.EUR) > Money(1.2, Currency.GBP)
 
-        with pytest.raises(InvalidOperandError):
+        with self.assertRaises(InvalidOperandError):
             Money(3.5) > 1.2
 
     def test_greater_than_or_equal(self):
-        assert Money(3.5) >= Money(1.2)
-        assert not Money(5.13) >= Money(104.2)
-        assert Money(2.2) >= Money(2.2)
+        self.assertGreaterEqual(Money(3.5), Money(1.2))
+        self.assertFalse(Money(5.13) >= Money(104.2))
+        self.assertGreaterEqual(Money(2.2), Money(2.2))
 
-        with pytest.raises(CurrencyMismatchError):
+        with self.assertRaises(CurrencyMismatchError):
             Money(3.5, Currency.EUR) >= Money(1.2, Currency.GBP)
 
-        with pytest.raises(InvalidOperandError):
+        with self.assertRaises(InvalidOperandError):
             Money(3.5) >= 1.2
 
     def test_equal(self):
-        assert Money(3.5) == Money(3.5)
-        assert Money(4.0, Currency.GBP) == Money(4.0, Currency.GBP)
-        assert not Money(6.9) == Money(43)
+        self.assertEqual(Money(3.5), Money(3.5))
+        self.assertEqual(Money(4.0, Currency.GBP), Money(4.0, Currency.GBP))
 
-        with pytest.raises(CurrencyMismatchError):
+        with self.assertRaises(CurrencyMismatchError):
             Money(3.5, Currency.EUR) == Money(3.5, Currency.GBP)
 
-        with pytest.raises(InvalidOperandError):
+        with self.assertRaises(InvalidOperandError):
             Money(5.5) == 5.5
 
     def test_not_equal(self):
-        assert Money(3.5) != Money(46.44)
-        assert Money(4.0, Currency.GBP) != Money(12.01, Currency.GBP)
-        assert not Money(6.9) != Money(6.9)
+        self.assertNotEqual(Money(46.44), Money(3.5))
+        self.assertNotEqual(Money(12.01, Currency.GBP), Money(4.0, Currency.GBP))
 
-        with pytest.raises(CurrencyMismatchError):
+        with self.assertRaises(CurrencyMismatchError):
             Money(3.5, Currency.EUR) != Money(23, Currency.GBP)
 
-        with pytest.raises(InvalidOperandError):
+        with self.assertRaises(InvalidOperandError):
             Money(5.5) != 666.32
 
     def test_bool(self):
-        assert bool(Money(3.62)) == True
-        assert bool(Money(0.00)) == False
+        self.assertEqual(True, bool(Money(3.62)))
+        self.assertEqual(False, bool(Money(0.00)))
 
     def test_add(self):
-        assert Money(3.5) + Money(1.25) == Money(4.75)
+        self.assertEqual(Money(4.75), Money(3.5) + Money(1.25))
 
-        with pytest.raises(CurrencyMismatchError):
+        with self.assertRaises(CurrencyMismatchError):
             Money(3.5, Currency.EUR) + Money(23, Currency.GBP)
 
-        with pytest.raises(InvalidOperandError):
+        with self.assertRaises(InvalidOperandError):
             Money(5.5) + 666.32
 
-        with pytest.raises(InvalidOperandError):
+        with self.assertRaises(InvalidOperandError):
             666.32 + Money(5.5)
 
     def test_subtract(self):
-        assert Money(3.5) - Money(1.25) == Money(2.25)
-        assert Money(4) - Money(5.5) == Money(-1.5)
+        self.assertEqual(Money(2.25), Money(3.5) - Money(1.25))
+        self.assertEqual(Money(-1.5), Money(4) - Money(5.5))
 
-        with pytest.raises(CurrencyMismatchError):
+        with self.assertRaises(CurrencyMismatchError):
             Money(3.5, Currency.EUR) - Money(1.8, Currency.GBP)
 
-        with pytest.raises(InvalidOperandError):
+        with self.assertRaises(InvalidOperandError):
             Money(5.5) - 6.32
 
-        with pytest.raises(InvalidOperandError):
+        with self.assertRaises(InvalidOperandError):
             666.32 - Money(5.5)
 
     def test_multiply(self):
-        assert Money(3.2) * 3 == Money(9.6)
-        assert 3 * Money(3.2, Currency.EUR) == Money(9.6, Currency.EUR)
-        assert Money(9.95) * 0.15 == Money(1.49)
-        assert Money(3, Currency.JPY) * 0.2 == Money(1, Currency.JPY)
-        assert Money(3, Currency.KRW) * 1.5 == Money(5, Currency.KRW)
+        self.assertEqual(Money(9.6), Money(3.2) * 3)
+        self.assertEqual(Money(9.6, Currency.EUR), 3 * Money(3.2, Currency.EUR))
+        self.assertEqual(Money(1.49), Money(9.95) * 0.15)
+        self.assertEqual(Money(1, Currency.JPY), Money(3, Currency.JPY) * 0.2)
+        self.assertEqual(Money(5, Currency.KRW), Money(3, Currency.KRW) * 1.5)
 
         # since GNF has different subunits than JPY, the results are different even though
         # they have the same final decimal precision. hopefully this behavior is correct...
-        assert Money(3, Currency.JPY) * 1.4995 == Money(4, Currency.JPY)
-        assert Money(3, Currency.GNF) * 1.4995 == Money(5, Currency.GNF)
+        self.assertEqual(Money(4, Currency.JPY), Money(3, Currency.JPY) * 1.4995)
+        self.assertEqual(Money(5, Currency.GNF), Money(3, Currency.GNF) * 1.4995)
 
-        with pytest.raises(InvalidOperandError):
+        with self.assertRaises(InvalidOperandError):
             Money(5.5) * Money(1.2)
 
     def test_divide(self):
-        assert Money(3.3) / 3 == Money(1.1)
-        assert Money(9.95) / 0.24 == Money(41.46)
-        assert Money(3, Currency.JPY) / 1.6 == Money(2, Currency.JPY)
-        assert Money(3.6) / Money(2.5) == 1.44
+        self.assertEqual(Money(1.1), Money(3.3) / 3)
+        self.assertEqual(Money(41.46), Money(9.95) / 0.24)
+        self.assertEqual(Money(2, Currency.JPY), Money(3, Currency.JPY) / 1.6)
+        self.assertEqual(1.44, Money(3.6) / Money(2.5))
 
-        with pytest.raises(TypeError):
+        with self.assertRaises(TypeError):
             3 / Money(5.5)
 
-        with pytest.raises(ZeroDivisionError):
+        with self.assertRaises(ZeroDivisionError):
             Money(3) / 0
 
-        with pytest.raises(ZeroDivisionError):
+        with self.assertRaises(ZeroDivisionError):
             Money(3.3) / 0.0
 
-        with pytest.raises(ZeroDivisionError):
+        with self.assertRaises(ZeroDivisionError):
             Money(3.3) / Money(0)
 
-        with pytest.raises(CurrencyMismatchError):
+        with self.assertRaises(CurrencyMismatchError):
             Money(3.5, Currency.EUR) / Money(1.8, Currency.GBP)
 
     def test_floor_divide(self):
-        assert Money(3.3) // 3 == Money(1)
-        assert Money(9.95) // 0.24 == Money(41)
-        assert Money(3, Currency.JPY) // 1.6 == Money(1, Currency.JPY)
-        assert Money(3.6) // Money(2.5) == 1
+        self.assertEqual(Money(1), Money(3.3) // 3)
+        self.assertEqual(Money(41), Money(9.95) // 0.24)
+        self.assertEqual(Money(1, Currency.JPY), Money(3, Currency.JPY) // 1.6)
+        self.assertEqual(1, Money(3.6) // Money(2.5))
 
-        with pytest.raises(TypeError):
+        with self.assertRaises(TypeError):
             3 // Money(5.5)
 
-        with pytest.raises(ZeroDivisionError):
+        with self.assertRaises(ZeroDivisionError):
             Money(3) // 0
 
-        with pytest.raises(ZeroDivisionError):
+        with self.assertRaises(ZeroDivisionError):
             Money(3.3) // 0.0
 
-        with pytest.raises(ZeroDivisionError):
+        with self.assertRaises(ZeroDivisionError):
             Money(3.3) // Money(0)
 
-        with pytest.raises(CurrencyMismatchError):
+        with self.assertRaises(CurrencyMismatchError):
             Money(3.5, Currency.EUR) // Money(1.8, Currency.GBP)
 
     def test_mod(self):
-        assert Money(3.3) % 3 == Money(0.3)
-        assert Money(3, Currency.JPY) % 2 == Money(1, Currency.JPY)
-        assert Money(3) % Money(2) == 1
+        self.assertEqual(Money(0.3), Money(3.3) % 3)
+        self.assertEqual(Money(1, Currency.JPY), Money(3, Currency.JPY) % 2)
+        self.assertEqual(1, Money(3) % Money(2))
 
-        with pytest.raises(TypeError):
+        with self.assertRaises(TypeError):
             3 % Money(5.5)
 
-        with pytest.raises(ZeroDivisionError):
+        with self.assertRaises(ZeroDivisionError):
             Money(3.3) % 0
 
-        with pytest.raises(ZeroDivisionError):
+        with self.assertRaises(ZeroDivisionError):
             Money(3.3) % 0.0
 
-        with pytest.raises(CurrencyMismatchError):
+        with self.assertRaises(CurrencyMismatchError):
             Money(3.5, Currency.EUR) % Money(1.8, Currency.GBP)
 
     def test_neg(self):
-        assert -Money(5.23) == Money(-5.23)
-        assert -Money(-1.35) == Money(1.35)
+        self.assertEqual(Money(-5.23), -Money(5.23))
+        self.assertEqual(Money(1.35), -Money(-1.35))
 
     def test_pos(self):
-        assert +Money(5.23) == Money(5.23)
-        assert +Money(-1.35) == Money(-1.35)
+        self.assertEqual(Money(5.23), +Money(5.23))
+        self.assertEqual(Money(-1.35), +Money(-1.35))
 
     def test_abs(self):
-        assert abs(Money(5.23)) == Money(5.23)
-        assert abs(Money(-1.35)) == Money(1.35)
+        self.assertEqual(Money(5.23), abs(Money(5.23)))
+        self.assertEqual(Money(1.35), abs(Money(-1.35)))
 
-    def test_format(self):
-        assert Money(3.24).format() == "$3.24"
-        assert Money(5.56, Currency.EUR).format("en_UK") == "€5.56"
-        assert Money(10, Currency.JPY).format() == "¥10"
-        assert Money(94, Currency.JPY).format("ja_JP") == "￥94"
+    def test_format_default(self):
+        self.assertEqual("$3.24", Money(3.24).format())
+        self.assertEqual("¥10", Money(10, Currency.JPY).format())
+        self.assertEqual("KWD192.325", Money(192.325, Currency.KWD).format())
+
+    def test_format_locale(self):
+        self.assertEqual("5,56 €", Money(5.56, Currency.EUR).format("fr_FR"))
+        self.assertEqual("￥94", Money(94, Currency.JPY).format("ja_JP"))
+        self.assertEqual("د.ك.‏ 192.325", Money(192.325, Currency.KWD).format("ar_KW"))
+
+    def test_format_name(self):
+        self.assertEqual("3.24 US dollars", Money(3.24).format(format_type="name"))
+        self.assertEqual(
+            "10 Japanese yen", Money(10, Currency.JPY).format(format_type="name")
+        )
+        self.assertEqual(
+            "192.325 Kuwaiti dinars",
+            Money(192.325, Currency.KWD).format(format_type="name"),
+        )
+
+    def test_format_locale_and_name(self):
+        self.assertEqual(
+            "5,56 euros", Money(5.56, Currency.EUR).format("fr_FR", format_type="name")
+        )
+        self.assertEqual(
+            "94円", Money(94, Currency.JPY).format("ja_JP", format_type="name")
+        )
+        self.assertEqual(
+            "192.325 دينار كويتي",
+            Money(192.325, Currency.KWD).format("ar_KW", format_type="name"),
+        )
+
+    def test_format_currency_code(self):
+        self.assertEqual("USD 3.24", Money(3.24).format(format="¤¤ "))
+        self.assertEqual(
+            "JPY 94", Money(94, Currency.JPY).format("ja_JP", format="¤¤ ")
+        )
+        self.assertEqual(
+            "KWD 192.325", Money(192.325, Currency.KWD).format("ar_KW", format="¤¤ ")
+        )
+
+    def test_format_currency_symbol(self):
+        self.assertEqual("$3.24", Money(3.24).format(format="¤"))
+        self.assertEqual("€5,56", Money(5.56, Currency.EUR).format("fr_FR", format="¤"))
+        self.assertEqual("¥10", Money(10, Currency.JPY).format(format="¤"))
+        self.assertEqual("￥94", Money(94, Currency.JPY).format("ja_JP", format="¤"))
+        self.assertEqual("KWD192.325", Money(192.325, Currency.KWD).format(format="¤"))
+        self.assertEqual(
+            "د.ك.‏192.325", Money(192.325, Currency.KWD).format("ar_KW", format="¤")
+        )
+
+    def test_format_custom(self):
+        self.assertEqual("$3.24 USD", Money(3.24).format(format="¤#,##0.00 ¤¤"))
+        self.assertEqual(
+            "€5,56 EUR",
+            Money(5.56, Currency.EUR).format("fr_FR", format="¤#,##0.00 ¤¤"),
+        )
+        self.assertEqual(
+            "¥10 JPY Japanese yen",
+            Money(10, Currency.JPY).format(format="¤#,##0.00 ¤¤", format_type="name"),
+        )
+        self.assertEqual(
+            "94￥ JPY円",
+            Money(94, Currency.JPY).format(
+                "ja_JP", format="#,##0.00¤ ¤¤", format_type="name"
+            ),
+        )
+        self.assertEqual(
+            "KWD192.325 KWD", Money(192.325, Currency.KWD).format(format="¤#,##0.00 ¤¤")
+        )
+        self.assertEqual(
+            "د.ك.‏192.325 KWD",
+            Money(192.325, Currency.KWD).format("ar_KW", format="¤#,##0.00 ¤¤"),
+        )

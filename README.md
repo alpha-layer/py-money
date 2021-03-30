@@ -25,13 +25,13 @@ A Money object can be created with an amount (as int, float, string, or Decimal)
 >>> from money.currency import Currency
 >>> m = Money(9.95, Currency.USD)
 >>> m
-USD $9.95
+USD 9.95
 >>> m = Money(1, Currency.CAD)
 >>> m
-CAD $1.00
+CAD 1.00
 >>> m = Money("10.99", Currency.GBP)
 >>> m
-GBP £10.99
+GBP 10.99
 ```
 
 If no Currency is provided, the default is USD:
@@ -39,7 +39,7 @@ If no Currency is provided, the default is USD:
 ```python
 >>> m = Money(10.99)
 >>> m
-USD $10.99
+USD 10.99
 ```
 
 > :eight_spoked_asterisk: **NOTE:** Money will throw an error if you try to construct it with an invalid amount (precision) for the currency:
@@ -53,7 +53,7 @@ USD $10.99
 > ```python
 > >>> m = Money(5.5, Currency.JPY, round=True)
 > >>> m
-> JPY ¥6
+> JPY 6
 > ```
 
 > :warning: **WARNING**: Passing in a Decimal created with a float argument has unknown precision which is probably not what you want:
@@ -65,13 +65,13 @@ USD $10.99
 > ```python
 > >>> m = Money(Decimal("3.95"))
 > >>> m
-> USD $3.95
+> USD 3.95
 > >>> m = Money(3.95)
 > >>> m
-> USD $3.95
+> USD 3.95
 > >>> m = Money(Decimal(3.95), round=True)
 > >>> m
-> USD $3.95
+> USD 3.95
 > ```
 
 Money objects can also be created from and converted to sub units:
@@ -79,7 +79,7 @@ Money objects can also be created from and converted to sub units:
 ```python
 >>> m = Money.from_sub_units(499, Currency.USD)
 >>> m
-USD $4.99
+USD 4.99
 >>> m.sub_units
 499
 ```
@@ -90,9 +90,9 @@ Money is immutable and supports most mathematical and logical operators:
 ```python
 >>> m = Money(10.00, Currency.USD)
 >>> m / 2
-USD $5.00
+USD 5.00
 >>> m + Money(3.00, Currency.USD)
-USD $8.00
+USD 8.00
 >>> m > Money(5.55, Currency.USD)
 True
 ```
@@ -102,10 +102,10 @@ Money will automatically round to the correct number of decimal places for the c
 ```python
 >>> m = Money(9.95, Currency.EUR)
 >>> m * 0.15
-EUR €9.95
+EUR 9.95
 >>> m = Money(10, Currency.JPY)
 >>> m / 3
-JPY ¥3
+JPY 3
 ```
 
 > :eight_spoked_asterisk: **NOTE:** Mathetmatical and logical operations between two money objects are only allowed if both objects are of the same currency. Otherwise, an error will be thrown. Money does not support conversion between currencies.
@@ -114,9 +114,9 @@ JPY ¥3
 > ```python
 > >>> m = Money(9.95, Currency.USD)
 > >>> m * 0.5 * 2
-> USD $9.96
+> USD 9.96
 > >>> m * (0.5 * 2)
-> USD $9.95
+> USD 9.95
 > ```
 > To avoid confusion, be sure to simplify your expressions.
 
@@ -124,15 +124,30 @@ For more examples, check out the tests file.
 
 ## Formatting
 
-Money can be formatted for different locales (defaults to `"en_US"`):
+Money can be formatted for different locales (defaults to `en_US`):
 
 ```python
->>> Money(3.24, Currency.USD).format("en_US")
+>>> Money(3.24, Currency.USD).format()
 '$3.24'
->>> Money(9.95, Currency.EUR).format("en_UK")
-'€5.56'
->>> Money(94, Currency.JPY).format()
-'￥94'
+>>> Money(9.95, Currency.EUR).format("fr_FR")
+'€5,56'
+>>> Money(192.325, Currency.KWD).format()
+'KWD192.325'
+>>> Money(192.325, Currency.KWD).format("ar_KW")
+'د.ك.‏ 192.325'
+```
+
+`.format()` accepts most [Babel.format_currency()](http://babel.pocoo.org/en/latest/api/numbers.html) arguments for customization:
+
+```python
+>>> Money(3.24).format(format_type="name")
+'3.24 US dollars'
+>>> Money(192.325, Currency.KWD).format("ar_KW", format_type="name")
+'192.325 دينار كويتي'
+>>> Money(94, Currency.JPY).format(format="¤¤ ")
+'JPY 94'
+>>> Money(94, Currency.JPY).format("ja_JP", format="#,##0.00¤ ¤¤",  format_type="name")
+'94￥ JPY円'
 ```
 
 ## Is this the money library for me?
@@ -155,7 +170,6 @@ If you're doing complicated money operations that require many digits of precisi
 
 ## Future improvements
 
-- Additional options for `.format()`
 - Improved mathematical operations with various numeric types
 - Settable default currency
 - Settable default rounding behaviour (on constructor)

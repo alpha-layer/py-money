@@ -3,7 +3,7 @@ from __future__ import annotations
 from decimal import ROUND_HALF_UP, Decimal
 from typing import Union
 
-from babel.numbers import format_currency, get_currency_symbol
+from babel.numbers import format_currency
 
 from money.currency import Currency, CurrencyHelper
 from money.exceptions import (
@@ -65,11 +65,7 @@ class Money:
         return hash((self._amount, self._currency))
 
     def __repr__(self) -> str:
-        # If currency symbol is the same as the name, omit the name.
-        if get_currency_symbol(self._currency.name, "en_US") == self._currency.name:
-            return self.format()
-
-        return f"{self._currency.name} {self.format()}"
+        return self.format(format="¤¤ ")
 
     def __lt__(self, other: Money) -> bool:
         if not isinstance(other, Money):
@@ -193,10 +189,18 @@ class Money:
     def __abs__(self) -> Money:
         return self.__class__(abs(self._amount), self._currency)
 
-    def format(self, locale: str = "en_US") -> str:
+    def format(
+        self, locale: str = "en_US", format: str = None, format_type: str = "standard"
+    ) -> str:
         """Returns a string of the currency formatted for the specified locale"""
 
-        return format_currency(self.amount, self.currency.name, locale=locale)
+        return format_currency(
+            self.amount,
+            self.currency.name,
+            locale=locale,
+            format=format,
+            format_type=format_type,
+        )
 
     def _assert_same_currency(self, other: Money) -> None:
         if self.currency != other.currency:
