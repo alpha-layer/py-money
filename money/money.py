@@ -5,7 +5,11 @@ from decimal import Decimal, ROUND_HALF_UP
 from babel.numbers import format_currency
 from money.currency import Currency
 from money.currency import CurrencyHelper
-from money.exceptions import InvalidAmountError, CurrencyMismatchError, InvalidOperandError
+from money.exceptions import (
+    InvalidAmountError,
+    CurrencyMismatchError,
+    InvalidOperandError,
+)
 
 
 class Money:
@@ -34,7 +38,7 @@ class Money:
     def from_sub_units(cls, sub_units: int, currency: Currency = Currency.USD):
         """Creates a Money instance from sub-units."""
         sub_units_per_unit = CurrencyHelper.sub_unit_for_currency(currency)
-        return cls(Decimal(sub_units) / Decimal(sub_units_per_unit), currency)
+        return cls(Decimal(sub_units) / Decimal(sub_units_per_unit), currency)  # type: ignore
 
     @property
     def sub_units(self) -> int:
@@ -120,12 +124,12 @@ class Money:
         return self.__mul__(other)
 
     def __div__(self, other: float) -> Money:
-        return self.__truediv__(other)
+        return self.__truediv__(other)  # type: ignore
 
     def __truediv__(self, other: Union[Money, float]) -> Union[Money, float]:
         if isinstance(other, Money):
             self._assert_same_currency(other)
-            if other.amount == Decimal('0'):
+            if other.amount == Decimal("0"):
                 raise ZeroDivisionError
             return float(self.amount / other.amount)
 
@@ -138,7 +142,7 @@ class Money:
     def __floordiv__(self, other: Union[Money, float]) -> Union[Money, float]:
         if isinstance(other, Money):
             self._assert_same_currency(other)
-            if other.amount == Decimal('0'):
+            if other.amount == Decimal("0"):
                 raise ZeroDivisionError
             return float(self.amount // other.amount)
 
@@ -151,7 +155,7 @@ class Money:
     def __mod__(self, other: Union[Money, float]) -> Union[Money, float]:
         if isinstance(other, Money):
             self._assert_same_currency(other)
-            if other.amount == Decimal('0'):
+            if other.amount == Decimal("0"):
                 raise ZeroDivisionError
             return float(self.amount % other.amount)
 
@@ -170,7 +174,7 @@ class Money:
     def __abs__(self) -> Money:
         return self.__class__(str(abs(self._amount)), self._currency)
 
-    def format(self, locale: str='en_US') -> str:
+    def format(self, locale: str = "en_US") -> str:
         """Returns a string of the currency formatted for the specified locale"""
 
         return format_currency(self.amount, self.currency.name, locale=locale)
@@ -183,9 +187,11 @@ class Money:
     def _round(amount: Decimal, currency: Currency) -> Decimal:
         sub_units = CurrencyHelper.sub_unit_for_currency(currency)
         # rstrip is necessary because quantize treats 1. differently from 1.0
-        rounded_to_subunits = amount.quantize(Decimal(str(1 / sub_units).rstrip('0')),\
-                                              rounding=ROUND_HALF_UP)
+        rounded_to_subunits = amount.quantize(
+            Decimal(str(1 / sub_units).rstrip("0")), rounding=ROUND_HALF_UP
+        )
         decimal_precision = CurrencyHelper.decimal_precision_for_currency(currency)
-        return rounded_to_subunits.quantize(\
-                   Decimal(str(1 / (10 ** decimal_precision)).rstrip('0')),\
-                   rounding=ROUND_HALF_UP)
+        return rounded_to_subunits.quantize(
+            Decimal(str(1 / (10 ** decimal_precision)).rstrip("0")),
+            rounding=ROUND_HALF_UP,
+        )
