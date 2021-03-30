@@ -123,7 +123,11 @@ Future improvements
 Contributing
 ------------
 
-Pull requests are welcome! Please include tests. You can install everything needed for development with
+Pull requests are welcome! Please include tests. You can install everything needed for development with:
+
+    pip install poetry
+    poetry install
+    pre-commit install
 
 Acknowledgements
 ----------------
