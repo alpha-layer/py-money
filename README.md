@@ -2,18 +2,28 @@
 
 Money class for Python 3 that enforces that all monetary amounts are represented with the correct number of decimal places for the currency, and is immutable when it comes to mathematical operations.
 
-Forked from [vimeo/pymoney](https://github.com/vimeo/py-money), adapted for use by AlphaLayer.
+Forked from [vimeo/pymoney](https://github.com/vimeo/py-money).
+
+- [py-money](#py-money)
+  - [Installation](#installation)
+  - [Usage](#usage)
+  - [Mathematical Operations](#mathematical-operations)
+  - [Formatting](#formatting)
+  - [Is this the money library for me?](#is-this-the-money-library-for-me)
+  - [Future improvements](#future-improvements)
+  - [Contributing](#contributing)
+  - [Acknowledgements](#acknowledgements)
 
 ## Installation
 
 Install the latest release with either:
 
 ```bash
-pip install git+https://622eb2d8292b2d17e2e1dd90dbc77a6ba0836f13@github.com/alpha-layer/py-money
+pip install git+https://github.com/alpha-layer/py-money
 ```
 or
 ```bash
-poetry add git+https://622eb2d8292b2d17e2e1dd90dbc77a6ba0836f13@github.com/alpha-layer/py-money
+poetry add git+https://github.com/alpha-layer/py-money
 ```
 
 ## Usage
@@ -171,6 +181,7 @@ If you're doing complicated money operations that require many digits of precisi
 ## Future improvements
 
 - Improved mathematical operations with various numeric types
+- Create proper releases and push to PyPi (maybe)
 - Settable default currency
 - Settable default rounding behaviour (on constructor)
 
